@@ -33,6 +33,11 @@ abstract class _VideoStoreBase with Store {
 
     videoData.add({'link': videoLink, 'title': title});
 
+    await saveVideos();
+  }
+
+  @action
+  Future<void> saveVideos() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     List<String> savedLinks = videoData.map((data) => data['link']!).toList();
     await prefs.setStringList('videos', savedLinks);
@@ -55,7 +60,7 @@ abstract class _VideoStoreBase with Store {
       }
     } catch (e) {
       print('Erro: $e');
-      return '';
+      return 'Título indisponível';
     }
   }
 

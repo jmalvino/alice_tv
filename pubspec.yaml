@@ -39,6 +39,7 @@ dependencies:
   flutter_mobx: ^2.0.0
   youtube_player_flutter: ^9.1.1
   shared_preferences: ^2.0.15
+#  connectivity_plus: ^3.0.0
 
 dev_dependencies:
   flutter_test:

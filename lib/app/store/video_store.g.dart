@@ -41,6 +41,14 @@ mixin _$VideoStore on _VideoStoreBase, Store {
     return _$addVideoAsyncAction.run(() => super.addVideo(videoLink));
   }
 
+  late final _$saveVideosAsyncAction =
+      AsyncAction('_VideoStoreBase.saveVideos', context: context);
+
+  @override
+  Future<void> saveVideos() {
+    return _$saveVideosAsyncAction.run(() => super.saveVideos());
+  }
+
   @override
   String toString() {
     return '''
