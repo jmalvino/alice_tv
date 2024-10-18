@@ -1,82 +1,54 @@
 import 'package:alice_tv/app/screens/add_video_page.dart';
+import 'package:alice_tv/app/screens/video_play_page.dart';
 import 'package:alice_tv/app/store/video_store.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
-class HomePage extends StatefulWidget {
+
+class HomePage extends StatelessWidget {
   final VideoStore store;
 
   HomePage({required this.store});
 
   @override
-  _HomePageState createState() => _HomePageState();
-}
-
-class _HomePageState extends State<HomePage> {
-  bool _isFullScreen = false;
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: _isFullScreen ? null : AppBar(title: const Text('Lista de Vídeos')),
+      appBar: AppBar(title: Text('Lista de Vídeos')),
       body: Observer(
         builder: (_) {
           return ListView.builder(
-            itemCount: widget.store.videoData.length,
+            itemCount: store.videoData.length,
             itemBuilder: (context, index) {
-              String videoLink = widget.store.videoData[index]['link']!;
+              String videoLink = store.videoData[index]['link']!;
               String videoId = YoutubePlayer.convertUrlToId(videoLink)!;
+              String thumbnailUrl = 'https://img.youtube.com/vi/$videoId/hqdefault.jpg';
 
-              YoutubePlayerController _controller = YoutubePlayerController(
-                initialVideoId: videoId,
-                flags: const YoutubePlayerFlags(
-                  autoPlay: false,
-                  hideControls: false,
-                  controlsVisibleAtStart: true,
-                  enableCaption: false,
-                ),
-              );
-
-              return Card(
-                child: YoutubePlayerBuilder(
-                  onEnterFullScreen: () {
-                    setState(() {
-                      _isFullScreen = true;
-                    });
-                  },
-                  onExitFullScreen: () {
-                    setState(() {
-                      _isFullScreen = false;
-                    });
-                  },
-                  player: YoutubePlayer(
-                    controller: _controller,
-                    showVideoProgressIndicator: true,
-                    onReady: () {
-                      // Player pronto
-                    },
+              return GestureDetector(
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => VideoPlayerPage(videoId: videoId),
+                    ),
+                  );
+                },
+                child: Card(
+                  child: Column(
+                    children: [
+                      Image.network(thumbnailUrl), // Exibe a miniatura
+                    ],
                   ),
-                  builder: (context, player) {
-                    return Column(
-                      children: [
-                        player,
-                      ],
-                    );
-                  },
                 ),
               );
             },
           );
         },
       ),
-      floatingActionButton: _isFullScreen
-          ? null
-          : FloatingActionButton(
+      floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.of(context).push(MaterialPageRoute(
-              builder: (_) => AddVideoPage(store: widget.store)));
+              builder: (_) => AddVideoPage(store: store)));
         },
-        child: const Icon(Icons.add),
+        child: Icon(Icons.add),
       ),
     );
   }
