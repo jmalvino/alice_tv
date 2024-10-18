@@ -29,9 +29,13 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Reproduzindo Vídeo'),
-      ),
+      // appBar: AppBar(
+      //   iconTheme: const IconThemeData(
+      //     color: Colors.white
+      //   ),
+      //   backgroundColor: Colors.black,
+      //   title: const Text(''),
+      // ),
       body: YoutubePlayerBuilder(
         player: YoutubePlayer(
           controller: _controller,

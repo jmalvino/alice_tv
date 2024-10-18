@@ -1,4 +1,5 @@
 import 'package:alice_tv/app/store/video_store.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
@@ -8,7 +9,7 @@ import 'list/list_por_idade.dart';
 class AddVideoPage extends StatefulWidget {
   final VideoStore store;
 
-  AddVideoPage({required this.store});
+  const AddVideoPage({super.key, required this.store});
 
   @override
   State<AddVideoPage> createState() => _AddVideoPageState();
@@ -84,7 +85,11 @@ class _AddVideoPageState extends State<AddVideoPage> {
                         child: ListTile(
                           leading: Padding(
                             padding: const EdgeInsets.symmetric(vertical: 10),
-                            child: Image.network(thumbnailUrl),
+                            child: CachedNetworkImage(
+                              imageUrl: thumbnailUrl,
+                              placeholder: (context, url) => const CircularProgressIndicator(),
+                              errorWidget: (context, url, error) => const Icon(Icons.error),
+                            ),
                           ),
                           title: Text('Vídeo ${index + 1}'),
                           trailing: IconButton(

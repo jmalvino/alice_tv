@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:alice_tv/app/screens/add_video_page.dart';
 import 'package:alice_tv/app/screens/video_play_page.dart';
 import 'package:alice_tv/app/store/video_store.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 // import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
@@ -96,12 +97,12 @@ class _HomePageState extends State<HomePage> {
         child: ListView(
           padding: EdgeInsets.zero,
           children: <Widget>[
-            const DrawerHeader(
+            DrawerHeader(
               decoration: BoxDecoration(
-                color: Colors.black,
+                color: Colors.grey[800],
               ),
-              child: Column(
-                 crossAxisAlignment: CrossAxisAlignment.start,
+              child: const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   Text(
@@ -123,7 +124,7 @@ class _HomePageState extends State<HomePage> {
             ),
             ListTile(
               leading: const Icon(Icons.add),
-              title: const Text('Adicionar Novo Vídeo'),
+              title: isConnected ? const Text('Adicionar Novo Vídeo') : Container(),
               onTap: () {
                 _showMathDialog(context);
               },
@@ -136,16 +137,19 @@ class _HomePageState extends State<HomePage> {
         builder: (_) {
           final videos = widget.store.videoData;
           final recentVideos = videos.length > 10 ? videos.skip(videos.length - 10).toList() : videos.toList();
+          isConnected = videos.isNotEmpty;
 
           return Column(
             children: [
-              const Text(
+              isConnected
+                  ? const Text(
                 'Adicionado Recentemente',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 17,
                 ),
-              ),
+              )
+                  : Container(),
               SizedBox(
                 height: 120,
                 child: ListView.builder(
@@ -167,19 +171,26 @@ class _HomePageState extends State<HomePage> {
                       child: Container(
                         width: 200,
                         margin: const EdgeInsets.all(8),
-                        child: Image.network(thumbnailUrl, fit: BoxFit.cover),
+                        child: CachedNetworkImage(
+                          imageUrl: thumbnailUrl,
+                          placeholder: (context, url) => const CircularProgressIndicator(),
+                          errorWidget: (context, url, error) => const Icon(Icons.error),
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     );
                   },
                 ),
               ),
-              const Text(
+              isConnected
+                  ? const Text(
                 'Assistir',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 17,
                 ),
-              ),
+              )
+                  : Container(),
               Expanded(
                 child: GridView.builder(
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -204,7 +215,12 @@ class _HomePageState extends State<HomePage> {
                           child: Column(
                             children: [
                               Expanded(
-                                child: Image.network(thumbnailUrl, fit: BoxFit.cover),
+                                child: CachedNetworkImage(
+                                  imageUrl: thumbnailUrl,
+                                  placeholder: (context, url) => const CircularProgressIndicator(),
+                                  errorWidget: (context, url, error) => const Icon(Icons.error),
+                                  fit: BoxFit.cover,
+                                ),
                               ),
                             ],
                           ),
