@@ -21,17 +21,17 @@ abstract class _VideoStoreBase with Store {
 
     for (String link in videoLinks) {
       String videoId = YoutubePlayer.convertUrlToId(link)!;
-      String title = await fetchVideoTitle(videoId);
-      videoData.add({'link': link, 'title': title});
+      // String title = await fetchVideoTitle(videoId);
+      videoData.add({'link': link});
     }
   }
 
   @action
   Future<void> addVideo(String videoLink) async {
     String videoId = YoutubePlayer.convertUrlToId(videoLink)!;
-    String title = await fetchVideoTitle(videoId);
+    // String title = await fetchVideoTitle(videoId);
 
-    videoData.add({'link': videoLink, 'title': title});
+    videoData.add({'link': videoLink});
 
     await saveVideos();
   }

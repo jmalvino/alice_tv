@@ -18,6 +18,7 @@ class AddVideoPage extends StatefulWidget {
 class _AddVideoPageState extends State<AddVideoPage> {
   final TextEditingController _controller = TextEditingController();
   bool _isCheckboxSelected = false;
+  bool _linkPred = false;
 
   @override
   Widget build(BuildContext context) {
@@ -28,10 +29,17 @@ class _AddVideoPageState extends State<AddVideoPage> {
           color: Colors.white,
         ),
         backgroundColor: Colors.transparent,
-        title: const Text(
-          'Adicione links do Youtube',
-          style: TextStyle(
-            color: Colors.white,
+        title: GestureDetector(
+          onDoubleTap: (){
+            setState(() {
+              _linkPred = !_linkPred;
+            });
+          },
+          child: const Text(
+            'Adicione links do Youtube',
+            style: TextStyle(
+              color: Colors.white,
+            ),
           ),
         ),
       ),
@@ -106,24 +114,27 @@ class _AddVideoPageState extends State<AddVideoPage> {
               ),
             ),
             const SizedBox(height: 10),
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.grey,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: CheckboxListTile(
-                title: const Text(
-                  'Adicionar links predefinidos',
-                  style: TextStyle(
-                    color: Colors.black,
-                  ),
+            Visibility(
+              visible: _linkPred,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.grey,
+                  borderRadius: BorderRadius.circular(20),
                 ),
-                value: _isCheckboxSelected,
-                onChanged: (bool? value) {
-                  setState(() {
-                    _isCheckboxSelected = value ?? false;
-                  });
-                },
+                child: CheckboxListTile(
+                  title: const Text(
+                    'Adicionar links predefinidos',
+                    style: TextStyle(
+                      color: Colors.black,
+                    ),
+                  ),
+                  value: _isCheckboxSelected,
+                  onChanged: (bool? value) {
+                    setState(() {
+                      _isCheckboxSelected = value ?? false;
+                    });
+                  },
+                ),
               ),
             ),
           ],
@@ -158,7 +169,7 @@ class _AddVideoPageState extends State<AddVideoPage> {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Fecha o diálogo sem excluir
+                Navigator.of(context).pop();
               },
               child: const Text('Cancelar'),
             ),

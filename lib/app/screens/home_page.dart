@@ -3,9 +3,8 @@ import 'package:alice_tv/app/screens/add_video_page.dart';
 import 'package:alice_tv/app/screens/video_play_page.dart';
 import 'package:alice_tv/app/store/video_store.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-
-// import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
@@ -19,11 +18,19 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  bool isConnected = true;
+  bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
+    _loadVideos();
+  }
+
+  Future<void> _loadVideos() async {
+    await widget.store.loadVideos();
+    setState(() {
+      isLoading = false;
+    });
   }
 
   void _showMathDialog(BuildContext context) {
@@ -67,13 +74,70 @@ class _HomePageState extends State<HomePage> {
                   );
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Resposta incorreta. Tente novamente!')),
+                    const SnackBar(
+                        content: Text('Resposta incorreta. Tente novamente!')),
                   );
                 }
               },
               child: const Text('Verificar'),
             ),
           ],
+        );
+      },
+    );
+  }
+
+  void _showDonationDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        String chavePix =
+            '00020101021126580014br.gov.bcb.pix013649fdd7d3-0411-4c90-a611-2f349932b2c25204000053039865802BR5919JOAO MALVINO JUNIOR6005SOUSA62070503***63040C15';
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          contentPadding: const EdgeInsets.all(16),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Image.asset(
+                "assets/images/bancoInter.png",
+                height: 150,
+                width: 150,
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                "CHAVE PIX",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                chavePix,
+                style: const TextStyle(fontSize: 11),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                onPressed: () {
+                  Clipboard.setData(
+                    ClipboardData(text: chavePix),
+                  );
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                          "Chave PIX copiada para a área de transferência!"),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.copy),
+                label: const Text("Copiar Chave PIX"),
+              ),
+            ],
+          ),
         );
       },
     );
@@ -86,7 +150,7 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         title: const Text(
-          'Alice TV',
+          '',
           style: TextStyle(color: Colors.white),
         ),
         iconTheme: const IconThemeData(
@@ -94,153 +158,238 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
       drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
+        child: Column(
           children: <Widget>[
             DrawerHeader(
               decoration: BoxDecoration(
                 color: Colors.grey[800],
               ),
-              child: const Column(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  Text(
-                    'AliceTv',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                    ),
+                  Row(
+                    children: [
+                      Image.asset(
+                        "assets/images/simb_alice_tv.png",
+                        width: MediaQuery.of(context).size.width * .2,
+                      ),
+                      const SizedBox(
+                        width: 10,
+                      ),
+                      const Text(
+                        'AliceTv',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                        ),
+                      ),
+                    ],
                   ),
-                  Text(
-                    'por Jmalvino',
-                    style: TextStyle(
-                      color: Colors.grey,
-                      fontSize: 13,
-                    ),
+                  const Row(
+                    children: [
+                      Text(
+                        'por Jmalvino',
+                        style: TextStyle(
+                          color: Colors.grey,
+                          fontSize: 13,
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      Text(
+                        'v.1.0.0',
+                        style: TextStyle(
+                          color: Colors.grey,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
             ListTile(
               leading: const Icon(Icons.add),
-              title: isConnected ? const Text('Adicionar Novo Vídeo') : Container(),
+              title:
+                  isLoading ? Container() : const Text('Adicionar Novo Vídeo'),
               onTap: () {
                 _showMathDialog(context);
               },
             ),
+            const Spacer(),
+            ListTile(
+              leading: const Icon(
+                Icons.handshake_outlined,
+              ),
+              title: isLoading
+                  ? Container()
+                  : const Text(
+                      'Apoe o projeto!',
+                      style: TextStyle(
+                        fontSize: 14,
+                      ),
+                    ),
+              onTap: () {
+                _showDonationDialog(context);
+              },
+            ),
+            const SizedBox(height: 20),
           ],
         ),
       ),
-      body: isConnected
-          ? Observer(
-        builder: (_) {
-          final videos = widget.store.videoData;
-          final recentVideos = videos.length > 10 ? videos.skip(videos.length - 10).toList() : videos.toList();
-          isConnected = videos.isNotEmpty;
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Observer(
+              builder: (_) {
+                final videos = widget.store.videoData;
+                if (videos.isEmpty) {
+                  return const Center(
+                    child: Text(
+                      'Não há vídeos disponíveis.\nAdicione novos vídeos no menu.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 18, color: Colors.red),
+                    ),
+                  );
+                }
 
-          return Column(
-            children: [
-              isConnected
-                  ? const Text(
-                'Adicionado Recentemente',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 17,
-                ),
-              )
-                  : Container(),
-              SizedBox(
-                height: 120,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: recentVideos.length,
-                  itemBuilder: (context, index) {
-                    String videoLink = recentVideos[index]['link']!;
-                    String videoId = YoutubePlayer.convertUrlToId(videoLink)!;
-                    String thumbnailUrl = 'https://img.youtube.com/vi/$videoId/hqdefault.jpg';
+                final recentVideos = videos.length > 10
+                    ? videos.skip(videos.length - 10).toList()
+                    : videos.toList();
 
-                    return GestureDetector(
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => VideoPlayerPage(videoId: videoId),
-                          ),
-                        );
-                      },
-                      child: Container(
-                        width: 200,
-                        margin: const EdgeInsets.all(8),
-                        child: CachedNetworkImage(
-                          imageUrl: thumbnailUrl,
-                          placeholder: (context, url) => const CircularProgressIndicator(),
-                          errorWidget: (context, url, error) => const Icon(Icons.error),
-                          fit: BoxFit.cover,
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.only(left: 15),
+                      child: Text(
+                        'Adicionado Recentemente',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 17,
                         ),
                       ),
-                    );
-                  },
-                ),
-              ),
-              isConnected
-                  ? const Text(
-                'Assistir',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 17,
-                ),
-              )
-                  : Container(),
-              Expanded(
-                child: GridView.builder(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                  ),
-                  itemCount: videos.length,
-                  itemBuilder: (context, index) {
-                    String videoLink = videos[index]['link']!;
-                    String videoId = YoutubePlayer.convertUrlToId(videoLink)!;
-                    String thumbnailUrl = 'https://img.youtube.com/vi/$videoId/hqdefault.jpg';
+                    ),
+                    SizedBox(
+                      height: 120,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: recentVideos.length,
+                        itemBuilder: (context, index) {
+                          String videoLink = recentVideos[index]['link']!;
+                          String videoId =
+                              YoutubePlayer.convertUrlToId(videoLink)!;
+                          String thumbnailUrl =
+                              'https://img.youtube.com/vi/$videoId/hqdefault.jpg';
 
-                    return GestureDetector(
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => VideoPlayerPage(videoId: videoId),
-                          ),
-                        );
-                      },
-                      child: Card(
-                        child: SizedBox(
-                          child: Column(
-                            children: [
-                              Expanded(
-                                child: CachedNetworkImage(
-                                  imageUrl: thumbnailUrl,
-                                  placeholder: (context, url) => const CircularProgressIndicator(),
-                                  errorWidget: (context, url, error) => const Icon(Icons.error),
-                                  fit: BoxFit.cover,
+                          return GestureDetector(
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      VideoPlayerPage(videoId: videoId),
                                 ),
+                              );
+                            },
+                            child: Container(
+                              width: 200,
+                              margin: const EdgeInsets.all(8),
+                              child: CachedNetworkImage(
+                                imageUrl: thumbnailUrl,
+                                placeholder: (context, url) => const SizedBox(
+                                    width: 70,
+                                    height: 70,
+                                    child: CircularProgressIndicator()),
+                                errorWidget: (context, url, error) =>
+                                    const Icon(Icons.error),
+                                fit: BoxFit.cover,
                               ),
-                            ],
-                          ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.only(left: 15),
+                      child: Text(
+                        'Assistir',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 17,
                         ),
                       ),
-                    );
-                  },
-                ),
-              ),
-            ],
-          );
-        },
-      )
-          : const Center(
-        child: Text(
-          'Este app só funciona com internet.\nCaso não tenha videos adicione no menu no canto superior esquerdo!',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 18, color: Colors.red),
-        ),
-      ),
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: GridView.builder(
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 10,
+                          ),
+                          itemCount: widget.store.videoData.length,
+                          itemBuilder: (context, index) {
+                            return FutureBuilder(
+                              future: Future.delayed(
+                                  const Duration(milliseconds: 100), () async {
+                                return widget.store.videoData[index];
+                              }),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return const Center(
+                                      child: CircularProgressIndicator());
+                                } else if (snapshot.hasError) {
+                                  return const Icon(Icons.error,
+                                      color: Colors.red);
+                                } else if (snapshot.hasData) {
+                                  String videoLink = snapshot.data!['link']!;
+                                  String videoId =
+                                      YoutubePlayer.convertUrlToId(videoLink)!;
+                                  String thumbnailUrl =
+                                      'https://img.youtube.com/vi/$videoId/hqdefault.jpg';
+
+                                  return GestureDetector(
+                                    onTap: () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              VideoPlayerPage(videoId: videoId),
+                                        ),
+                                      );
+                                    },
+                                    child: Card(
+                                      child: Column(
+                                        children: [
+                                          Expanded(
+                                            child: CachedNetworkImage(
+                                              imageUrl: thumbnailUrl,
+                                              placeholder: (context, url) =>
+                                                  const CircularProgressIndicator(),
+                                              errorWidget:
+                                                  (context, url, error) =>
+                                                      const Icon(Icons.error),
+                                              fit: BoxFit.cover,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                } else {
+                                  return Container();
+                                }
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    )
+                  ],
+                );
+              },
+            ),
     );
   }
 }
