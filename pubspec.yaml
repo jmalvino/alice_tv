@@ -42,6 +42,7 @@ dependencies:
   cached_network_image: ^3.3.1
   path_provider: ^2.0.11
   flutter_launcher_icons: ^0.13.1
+  lottie: ^3.0.0
 
 #  connectivity_plus: ^3.0.0
 
@@ -76,6 +77,8 @@ flutter:
     - assets/images/logo_alice_tv.png
     - assets/images/simb_alice_tv.png
     - assets/images/bancoInter.png
+    - assets/lottie/astronaut_space.json
+    - assets/lottie/processing_circle.json
 
 
   # An image asset can refer to one or more resolution-specific "variants", see

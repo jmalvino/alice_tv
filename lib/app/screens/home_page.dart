@@ -1,11 +1,13 @@
 import 'dart:math';
 import 'package:alice_tv/app/screens/add_video_page.dart';
 import 'package:alice_tv/app/screens/video_play_page.dart';
+import 'package:alice_tv/app/screens/widget/circular_progress.dart';
 import 'package:alice_tv/app/store/video_store.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:lottie/lottie.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 class HomePage extends StatefulWidget {
@@ -238,23 +240,35 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
       body: isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgress())
           : Observer(
               builder: (_) {
                 final videos = widget.store.videoData;
                 if (videos.isEmpty) {
-                  return const Center(
-                    child: Text(
-                      'Não há vídeos disponíveis.\nAdicione novos vídeos no menu.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 18, color: Colors.red),
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(
+                          width: 200,
+                          height: 200,
+                          child: Lottie.asset(
+                              'assets/lottie/astronaut_space.json'),
+                        ),
+                        const Text(
+                          'Não há vídeos disponíveis.\nAdicione novos vídeos no menu.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 18, color: Colors.deepPurple),
+                        ),
+                      ],
                     ),
                   );
                 }
 
-                final recentVideos = videos.length > 10
+                var recentVideos = videos.length > 10
                     ? videos.skip(videos.length - 10).toList()
                     : videos.toList();
+                recentVideos = recentVideos.reversed.toList();
 
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -299,7 +313,7 @@ class _HomePageState extends State<HomePage> {
                                 placeholder: (context, url) => const SizedBox(
                                     width: 70,
                                     height: 70,
-                                    child: CircularProgressIndicator()),
+                                    child: CircularProgress()),
                                 errorWidget: (context, url, error) =>
                                     const Icon(Icons.error),
                                 fit: BoxFit.cover,
@@ -339,7 +353,7 @@ class _HomePageState extends State<HomePage> {
                                 if (snapshot.connectionState ==
                                     ConnectionState.waiting) {
                                   return const Center(
-                                      child: CircularProgressIndicator());
+                                      child: CircularProgress());
                                 } else if (snapshot.hasError) {
                                   return const Icon(Icons.error,
                                       color: Colors.red);
@@ -366,7 +380,7 @@ class _HomePageState extends State<HomePage> {
                                             child: CachedNetworkImage(
                                               imageUrl: thumbnailUrl,
                                               placeholder: (context, url) =>
-                                                  const CircularProgressIndicator(),
+                                                  const CircularProgress(),
                                               errorWidget:
                                                   (context, url, error) =>
                                                       const Icon(Icons.error),

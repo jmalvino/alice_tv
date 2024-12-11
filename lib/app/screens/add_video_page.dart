@@ -1,3 +1,4 @@
+import 'package:alice_tv/app/screens/widget/circular_progress.dart';
 import 'package:alice_tv/app/store/video_store.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -30,7 +31,7 @@ class _AddVideoPageState extends State<AddVideoPage> {
         ),
         backgroundColor: Colors.transparent,
         title: GestureDetector(
-          onDoubleTap: (){
+          onDoubleTap: () {
             setState(() {
               _linkPred = !_linkPred;
             });
@@ -65,7 +66,8 @@ class _AddVideoPageState extends State<AddVideoPage> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                  style:
+                      ElevatedButton.styleFrom(backgroundColor: Colors.green),
                   onPressed: () {
                     _addVideo();
                   },
@@ -85,9 +87,13 @@ class _AddVideoPageState extends State<AddVideoPage> {
                   return ListView.builder(
                     itemCount: widget.store.videoData.length,
                     itemBuilder: (context, index) {
-                      String videoLink = widget.store.videoData[index]['link']!;
+                      var reversedVideoData =
+                          widget.store.videoData.reversed.toList();
+
+                      String videoLink = reversedVideoData[index]['link']!;
                       String videoId = YoutubePlayer.convertUrlToId(videoLink)!;
-                      String thumbnailUrl = 'https://img.youtube.com/vi/$videoId/hqdefault.jpg';
+                      String thumbnailUrl =
+                          'https://img.youtube.com/vi/$videoId/hqdefault.jpg';
 
                       return Card(
                         child: ListTile(
@@ -95,8 +101,10 @@ class _AddVideoPageState extends State<AddVideoPage> {
                             padding: const EdgeInsets.symmetric(vertical: 10),
                             child: CachedNetworkImage(
                               imageUrl: thumbnailUrl,
-                              placeholder: (context, url) => const CircularProgressIndicator(),
-                              errorWidget: (context, url, error) => const Icon(Icons.error),
+                              placeholder: (context, url) =>
+                                  const CircularProgress(),
+                              errorWidget: (context, url, error) =>
+                                  const Icon(Icons.error),
                             ),
                           ),
                           title: Text('Vídeo ${index + 1}'),
@@ -137,6 +145,41 @@ class _AddVideoPageState extends State<AddVideoPage> {
                 ),
               ),
             ),
+            Visibility(
+              visible: widget.store.videoData.length > 1,
+              child: GestureDetector(
+                onTap: () {
+                  _showDeleteAllConfirmation(context);
+                },
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 10),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 5),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.delete_forever_outlined,
+                            color: Colors.white,
+                          ),
+                          Text(
+                            'Apagar todos os videos',
+                            style: TextStyle(
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -151,7 +194,8 @@ class _AddVideoPageState extends State<AddVideoPage> {
 
     if (_isCheckboxSelected) {
       for (String link in predefinedLinks) {
-        bool exists = widget.store.videoData.any((video) => video['link'] == link);
+        bool exists =
+            widget.store.videoData.any((video) => video['link'] == link);
         if (!exists) {
           await widget.store.addVideo(link);
         }
@@ -160,12 +204,15 @@ class _AddVideoPageState extends State<AddVideoPage> {
   }
 
   void _showDeleteConfirmation(BuildContext context, int index) {
+    int originalIndex = widget.store.videoData.length - 1 - index;
+
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           title: const Text('Confirmar exclusão'),
-          content: const Text('Você tem certeza que deseja excluir este vídeo?'),
+          content:
+              const Text('Você tem certeza que deseja excluir este vídeo?'),
           actions: [
             TextButton(
               onPressed: () {
@@ -175,11 +222,41 @@ class _AddVideoPageState extends State<AddVideoPage> {
             ),
             TextButton(
               onPressed: () {
-                widget.store.videoData.removeAt(index);
+                widget.store.videoData.removeAt(originalIndex);
                 widget.store.saveVideos();
                 Navigator.of(context).pop();
               },
               child: const Text('Excluir'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showDeleteAllConfirmation(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Confirmar exclusão'),
+          content:
+              const Text('Você tem certeza que deseja excluir todos os vídeos?'
+                  '\nAtenção:\nEssa ação não pode ser desfeita!'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () {
+                widget.store.videoData.clear();
+                widget.store.saveVideos();
+                Navigator.of(context).pop();
+              },
+              child: const Text('Excluir Todos'),
             ),
           ],
         );
